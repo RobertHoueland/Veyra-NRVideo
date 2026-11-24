@@ -5,7 +5,10 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include <filesystem>
+#include <format>
 #include <map>
 #include <mutex>
 #include <string>
@@ -22,6 +25,66 @@ namespace veyra::gfx {
 #ifdef VEYRA_HAS_FSR
 namespace {
 
+// --- Windows 10 support for FSR 4 ML frame generation (experimental) ----------
+// AMD's frame-generation DLL only offers its ML provider when RtlGetVersion
+// reports a Windows 11 build (>= 22000) and the D3D12 device supports shader
+// model 6.6 (see the Agility SDK exports in apps/veyra-qml/main.cpp). It looks
+// RtlGetVersion up with GetProcAddress at run time, so we patch only THAT
+// module's import of GetProcAddress. The rest of the process, Qt included,
+// keeps seeing the real OS version. Disable with VEYRA_NO_WIN11_SHIM=1.
+using RtlGetVersionFn = LONG(WINAPI*)(PRTL_OSVERSIONINFOW);
+RtlGetVersionFn g_realRtlGetVersion = nullptr;
+
+LONG WINAPI shimRtlGetVersion(PRTL_OSVERSIONINFOW info) {
+    const LONG status = g_realRtlGetVersion ? g_realRtlGetVersion(info) : -1;
+    if (status == 0 && info && info->dwMajorVersion == 10 && info->dwBuildNumber < 22000)
+        info->dwBuildNumber = 22631;  // Windows 11 23H2, only as seen by the AMD FSR DLL
+    return status;
+}
+
+FARPROC WINAPI shimGetProcAddress(HMODULE module, LPCSTR name) {
+    FARPROC proc = ::GetProcAddress(module, name);
+    if (proc && name && !IS_INTRESOURCE(name) && _stricmp(name, "RtlGetVersion") == 0 &&
+        module == GetModuleHandleW(L"ntdll.dll")) {
+        g_realRtlGetVersion = reinterpret_cast<RtlGetVersionFn>(proc);
+        return reinterpret_cast<FARPROC>(&shimRtlGetVersion);
+    }
+    return proc;
+}
+
+bool realBuildIsBeforeWin11() {
+    const auto fn = reinterpret_cast<RtlGetVersionFn>(
+        ::GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "RtlGetVersion"));
+    RTL_OSVERSIONINFOW info{sizeof info};
+    return fn && fn(&info) == 0 && info.dwMajorVersion == 10 && info.dwBuildNumber < 22000;
+}
+
+// Rewrites `module`'s import-table entry for KERNEL32!GetProcAddress.
+bool patchGetProcAddressImport(HMODULE module) {
+    const auto base = reinterpret_cast<BYTE*>(module);
+    const auto dos = reinterpret_cast<IMAGE_DOS_HEADER*>(base);
+    const auto nt = reinterpret_cast<IMAGE_NT_HEADERS*>(base + dos->e_lfanew);
+    const auto& dir = nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
+    if (!dir.VirtualAddress) return false;
+    auto* desc = reinterpret_cast<IMAGE_IMPORT_DESCRIPTOR*>(base + dir.VirtualAddress);
+    for (; desc->Name; ++desc) {
+        if (_stricmp(reinterpret_cast<const char*>(base + desc->Name), "KERNEL32.dll") != 0) continue;
+        auto* names = reinterpret_cast<IMAGE_THUNK_DATA*>(base + (desc->OriginalFirstThunk ? desc->OriginalFirstThunk : desc->FirstThunk));
+        auto* slots = reinterpret_cast<IMAGE_THUNK_DATA*>(base + desc->FirstThunk);
+        for (; names->u1.AddressOfData; ++names, ++slots) {
+            if (IMAGE_SNAP_BY_ORDINAL(names->u1.Ordinal)) continue;
+            const auto* byName = reinterpret_cast<IMAGE_IMPORT_BY_NAME*>(base + names->u1.AddressOfData);
+            if (strcmp(byName->Name, "GetProcAddress") != 0) continue;
+            DWORD old = 0;
+            if (!VirtualProtect(&slots->u1.Function, sizeof(void*), PAGE_READWRITE, &old)) return false;
+            slots->u1.Function = reinterpret_cast<ULONG_PTR>(&shimGetProcAddress);
+            VirtualProtect(&slots->u1.Function, sizeof(void*), old, &old);
+            return true;
+        }
+    }
+    return false;
+}
+
 HMODULE loadResidentModule(const std::filesystem::path& path) {
     // One retained reference per absolute module path, even when graph rebuilds
     // or independent export workers create many short-lived contexts.
@@ -32,8 +95,14 @@ HMODULE loadResidentModule(const std::filesystem::path& path) {
     if (const auto found = modules.find(key); found != modules.end()) return found->second;
     const auto module = LoadLibraryExW(path.c_str(), nullptr,
         LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR | LOAD_LIBRARY_SEARCH_SYSTEM32);
-    if (module) modules.emplace(key, module);
-    else log::error("fsr-fg", std::format("runtime load failed path={} win32={}", path.string(), GetLastError()));
+    if (module) {
+        modules.emplace(key, module);
+        if (path.filename() == L"amd_fidelityfx_framegeneration_dx12.dll" &&
+            realBuildIsBeforeWin11() && GetEnvironmentVariableW(L"VEYRA_NO_WIN11_SHIM", nullptr, 0) == 0) {
+            const bool ok = patchGetProcAddressImport(module);
+            log::info("fsr-fg", std::format("Windows 10 detected: FSR frame-generation DLL sees a Windows 11 build (experimental ML unlock) patched={}", ok));
+        }
+    } else log::error("fsr-fg", std::format("runtime load failed path={} win32={}", path.string(), GetLastError()));
     return module;
 }
 

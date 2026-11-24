@@ -1,0 +1,28 @@
+{
+  "base_release": "671f9e963db63cbd7f912caa35c4caa3e0e60f76",
+  "win10_patch_source": "https://github.com/MIASock/Veyra-NRVideo-win10-fsr4ml/tree/1d09ef299c3ff708d41d06197ff0c956b4bb2b04",
+  "vcpkg_commit": "7f2ca8f8f9a2b6ae02ea4b4b7e0ef27490568afa",
+  "agility_version": "1.620.2",
+  "sources": {
+    "ffx1": ["GPUOpen-LibrariesAndSDKs/FidelityFX-SDK", "c6efa6bf7f2027b3ec94f28578bb5965eabb9e55"],
+    "ffx2": ["GPUOpen-LibrariesAndSDKs/FidelityFX-SDK", "60f4ea81909200d8542eca14dccb2628b763a9a3"],
+    "amf": ["GPUOpen-LibrariesAndSDKs/AMF", "57ee0cfb0e1a08d9041f77435653794c1b012be0"],
+    "dlss": ["NVIDIA/DLSS", "a291cc7d2cc642a51566f3dfd5376f635cd1b284"],
+    "nvenc": ["FFmpeg/nv-codec-headers", "e844e5b26f46bb77479f063029595293aa8f812d"],
+    "sdl": ["libsdl-org/SDL", "147a8ee32dbf9ac02f3794964490687b6bbda1bc"]
+  },
+  "archives": {
+    "donor": {
+      "url": "https://github.com/Likely7/Veyra-NRVideo/releases/download/v2.2.0/Veyra-2.2.0-AMD-win64-portable.zip",
+      "sha256": "b383cd4fbc94a6b84e32f36bc8c2758b4c03216c2bd0a2560e3112ba520d6905"
+    },
+    "ffmpeg": {
+      "url": "https://github.com/Likely7/Veyra-NRVideo/releases/download/v2.0.7-sources/FFmpeg-9.0.1-slices256-dav1d-zlib-source.zip",
+      "sha256": "49db22049f072bd5448faa664aa736074dccfe6e72b4a933f673d8ae954b0bb6"
+    },
+    "remoteplay_dovi": {
+      "url": "https://github.com/Likely7/Veyra-NRVideo/releases/download/v2.2.0-sources/Veyra-2.2.0-remoteplay-dovi-source.zip",
+      "sha256": "9aa56baa2aeb1f863934aaaeeebd0631bb0d48d209ffa60e7ca3801b0fba1de2"
+    }
+  }
+}

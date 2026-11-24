@@ -69,6 +69,14 @@
 #include "veyra/ui/UpdateChecker.h"
 #include "veyra/base/PortableLayout.h"
 
+// Experimental Windows 10 FSR4 ML support, ported from MIASock's
+// win10-fsr4ml branch. The matching Microsoft Agility runtime must be deployed
+// next to this executable in agility/. This does not enable other Win11 APIs.
+extern "C" {
+__declspec(dllexport) extern const UINT D3D12SDKVersion = 620;
+__declspec(dllexport) extern const char* D3D12SDKPath = ".\\agility\\";
+}
+
 using namespace veyra;
 
 namespace {

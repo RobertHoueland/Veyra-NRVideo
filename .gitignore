@@ -11,6 +11,8 @@
 /build/
 /.vs/
 /vcpkg_installed/
+/.ci-work/
+/dist/
 CMakeUserPresets.json
 
 # Diagnostics and captures
