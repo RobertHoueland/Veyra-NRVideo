@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch, MagicMock
 import zipfile
 
 HERE = Path(__file__).resolve().parent
@@ -13,6 +14,20 @@ spec.loader.exec_module(prepare)
 
 
 class PackagingTests(unittest.TestCase):
+    def test_pe_export_table_above_default_limit(self):
+        spec = importlib.util.spec_from_file_location('verify', HERE / 'verify-win10-ps5.py')
+        verify = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(verify)
+        image = MagicMock()
+        image.DIRECTORY_ENTRY_EXPORT.struct.NumberOfNames = 9525
+        image.DIRECTORY_ENTRY_EXPORT.symbols = [MagicMock(name='export') for _ in range(9525)]
+        with patch.object(verify.pefile, 'PE', return_value=image) as constructor:
+            self.assertIs(verify.read_pe('Qt6Quick.dll'), image)
+            self.assertGreaterEqual(constructor.call_args.kwargs['max_symbol_exports'], 9525)
+            image.DIRECTORY_ENTRY_EXPORT.struct.NumberOfNames = 9526
+            with self.assertRaises(RuntimeError):
+                verify.read_pe('Qt6Quick.dll')
+
     def test_exports(self):
         self.assertEqual(prepare.exported_names('    1    0 00001234 avcodec_version\n    2    A 00005678 avcodec_open2\n'),
                          ['avcodec_version', 'avcodec_open2'])

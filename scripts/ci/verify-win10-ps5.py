@@ -6,6 +6,21 @@ from pathlib import Path
 import pefile
 
 
+def read_pe(path, imports=False):
+    # QtQuick has >9,000 named exports. pefile's default stops reading names
+    # after 8,192 but leaves ordinal-only records, yielding false missing imports.
+    image = pefile.PE(str(path), fast_load=True, max_symbol_exports=100000)
+    directories = [pefile.DIRECTORY_ENTRY['IMAGE_DIRECTORY_ENTRY_EXPORT']]
+    if imports:
+        directories.append(pefile.DIRECTORY_ENTRY['IMAGE_DIRECTORY_ENTRY_IMPORT'])
+    image.parse_data_directories(directories=directories)
+    exports = getattr(image, 'DIRECTORY_ENTRY_EXPORT', None)
+    if exports and sum(s.name is not None for s in exports.symbols) != exports.struct.NumberOfNames:
+        image.close()
+        raise RuntimeError(f'Incomplete export-name table: {path}')
+    return image
+
+
 def verify(work, dist):
     cache = (work / 'build/CMakeCache.txt').read_text()
     for feature in ['REMOTEPLAY', 'MOONLIGHT', 'XBOX', 'DEINTERLACE', 'LIBDOVI']:
@@ -16,7 +31,7 @@ def verify(work, dist):
         raise RuntimeError('AMD backend compile definitions missing')
     donor = Path((work / 'donor-path.txt').read_text())
     local = {p.name.lower(): p for p in donor.glob('*.dll')}
-    exe = pefile.PE(str(dist / 'veyra_qml_ui.exe'))
+    exe = read_pe(dist / 'veyra_qml_ui.exe', imports=True)
     exports = {s.name.decode(): s for s in exe.DIRECTORY_ENTRY_EXPORT.symbols if s.name}
     if not {'D3D12SDKVersion', 'D3D12SDKPath'} <= exports.keys():
         raise RuntimeError('Agility exports missing')
@@ -31,7 +46,7 @@ def verify(work, dist):
             if not name.startswith(('api-ms-', 'ext-ms-')) and not system.exists():
                 raise RuntimeError(f'DLL absent from donor and Windows: {name}')
             continue
-        dll = pefile.PE(str(local[name]))
+        dll = read_pe(local[name])
         symbols = dll.DIRECTORY_ENTRY_EXPORT.symbols
         by_name = {s.name for s in symbols if s.name}
         by_ordinal = {s.ordinal for s in symbols}
