@@ -55,7 +55,10 @@ jobs:
             .ci-work/vcpkg/downloads
             .ci-work/downloads
             .ci-work/cargo-tools
-          key: win10-ps5-windows2022-v1-${{ hashFiles('scripts/ci/win10-ps5-lock.json', 'scripts/ci/build-win10-ps5.ps1') }}
+          key: win10-ps5-windows2022-v1-${{ hashFiles('scripts/ci/win10-ps5-lock.json', 'scripts/ci/build-win10-ps5.ps1') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            win10-ps5-windows2022-v1-${{ hashFiles('scripts/ci/win10-ps5-lock.json', 'scripts/ci/build-win10-ps5.ps1') }}-
+            win10-ps5-windows2022-v1-
       - name: Build static dependency libraries
         timeout-minutes: 15
         run: ./scripts/ci/build-win10-ps5.ps1 -Phase vcpkg
@@ -118,6 +121,7 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: build-diagnostics-${{ github.run_attempt }}
+          include-hidden-files: true
           path: |
             .ci-work/**/CMakeCache.txt
             .ci-work/**/CMakeConfigureLog.yaml

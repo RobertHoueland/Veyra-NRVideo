@@ -12,6 +12,10 @@
     "sdl": ["libsdl-org/SDL", "147a8ee32dbf9ac02f3794964490687b6bbda1bc"]
   },
   "archives": {
+    "protoc": {
+      "url": "https://github.com/protocolbuffers/protobuf/releases/download/v29.5/protoc-29.5-win64.zip",
+      "sha256": "633d3e555fc97f0a1f55b4adb03256cd94b8059e51e7abbae98ff39e58a9dfa5"
+    },
     "donor": {
       "url": "https://github.com/Likely7/Veyra-NRVideo/releases/download/v2.2.0/Veyra-2.2.0-AMD-win64-portable.zip",
       "sha256": "b383cd4fbc94a6b84e32f36bc8c2758b4c03216c2bd0a2560e3112ba520d6905"

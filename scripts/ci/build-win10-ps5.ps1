@@ -19,8 +19,8 @@ $env:CMAKE_BUILD_PARALLEL_LEVEL = '2'
 $env:PKG_CONFIG_PATH = "$Prefix/lib/pkgconfig;$Prefix/share/pkgconfig"
 $env:PKG_CONFIG_LIBDIR = $env:PKG_CONFIG_PATH
 $PkgConfig = "$Prefix/tools/pkgconf/pkgconf.exe"
-$Protoc = "$Prefix/tools/protobuf/protoc.exe"
-$env:PATH = "$Prefix/tools/protobuf;$Prefix/tools/pkgconf;$env:PATH"
+$Protoc = "$Work/protoc/bin/protoc.exe"
+$env:PATH = "$Work/protoc/bin;$Prefix/tools/pkgconf;$env:PATH"
 Set-Location $Root
 switch ($Phase) {
     'vcpkg' {
@@ -33,7 +33,7 @@ switch ($Phase) {
         Exec "$VcRoot/bootstrap-vcpkg.bat" @('-disableMetrics')
         # Classic mode, never the application's intentionally minimal manifest.
         Exec "$VcRoot/vcpkg.exe" @('install','--classic','--triplet=x64-windows-static',
-            'opus','openssl','json-c','libevent','miniupnpc','protobuf','pkgconf','nlohmann-json')
+            'opus','openssl','json-c','libevent','miniupnpc','pkgconf','nlohmann-json')
     }
     'libraries' {
         Exec "$VcRoot/vcpkg.exe" @('install','--classic','--triplet=x64-windows-static','libdatachannel[srtp,ws]')
