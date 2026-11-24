@@ -123,9 +123,14 @@ jobs:
           name: build-diagnostics-${{ github.run_attempt }}
           include-hidden-files: true
           path: |
-            .ci-work/**/CMakeCache.txt
-            .ci-work/**/CMakeConfigureLog.yaml
-            .ci-work/**/LastTest.log
+            .ci-work/build/CMakeCache.txt
+            .ci-work/build/CMakeFiles/CMakeConfigureLog.yaml
+            .ci-work/build/Testing/Temporary/LastTest.log
+            .ci-work/native-build/CMakeCache.txt
+            .ci-work/native-build/CMakeFiles/CMakeConfigureLog.yaml
+            .ci-work/native-build/Testing/Temporary/LastTest.log
+            .ci-work/sdl-build/CMakeCache.txt
+            .ci-work/ffx1/sdk/build/CMakeCache.txt
             .ci-work/ffmpeg/ffmpeg-patched/ffbuild/config.log
             .ci-work/vcpkg/buildtrees/**/*.log
           if-no-files-found: ignore

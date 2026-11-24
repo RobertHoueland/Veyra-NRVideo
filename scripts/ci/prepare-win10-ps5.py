@@ -127,6 +127,19 @@ def stage_sources(work):
              ml['commit'], work / 'moonlight', recursive=True)
 
 
+def verify_ffmpeg_major(include_dir, library, expected):
+    # libavutil retains a compatibility version_major.h, but defines its ABI
+    # number in version.h. Other libraries define it in version_major.h.
+    definitions = set()
+    pattern = r'^\s*#define\s+LIB' + library.upper() + r'_VERSION_MAJOR\s+(\d+)\b'
+    for name in ('version.h', 'version_major.h'):
+        header = include_dir / name
+        if header.is_file():
+            definitions.update(int(x) for x in re.findall(pattern, header.read_text(), re.MULTILINE))
+    if definitions != {expected}:
+        raise RuntimeError(f'Unexpected FFmpeg ABI for {library}: {sorted(definitions)}, expected {expected}')
+
+
 def stage_runtime_headers(work):
     donors = list((work / 'donor').rglob('versions/2.2.0/veyra_qml_ui.exe'))
     if len(donors) != 1:
@@ -150,11 +163,7 @@ def stage_runtime_headers(work):
         inc.mkdir(parents=True, exist_ok=True)
         for header in (source / ('lib' + lib)).glob('*.h'):
             shutil.copy2(header, inc / header.name)
-        version = inc / 'version_major.h'
-        if not version.exists():
-            version = inc / 'version.h'
-        if not re.search(r'#define\s+LIB' + lib.upper() + r'_VERSION_MAJOR\s+' + str(major) + r'\b', version.read_text()):
-            raise RuntimeError(f'Unexpected FFmpeg ABI for {lib}')
+        verify_ffmpeg_major(inc, lib, major)
         import_lib(donor / f'{lib}-{major}.dll', prefix / 'lib' / f'{lib}.lib')
     module = prefix / 'share/ffmpeg/FindFFMPEG.cmake'
     module.parent.mkdir(parents=True, exist_ok=True)

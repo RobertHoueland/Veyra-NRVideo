@@ -39,6 +39,25 @@ class PackagingTests(unittest.TestCase):
             prepare.extract(root / 'good.zip', root / 'out')
             self.assertEqual((root / 'out/a/b.txt').read_text(), 'hello')
 
+    def test_ffmpeg_avutil_compatibility_header(self):
+        with tempfile.TemporaryDirectory() as temp:
+            inc = Path(temp)
+            (inc / 'version_major.h').write_text('#include "version.h"\n')
+            (inc / 'version.h').write_text('#define LIBAVUTIL_VERSION_MAJOR 61\n')
+            prepare.verify_ffmpeg_major(inc, 'avutil', 61)
+            with self.assertRaises(RuntimeError):
+                prepare.verify_ffmpeg_major(inc, 'avutil', 60)
+            (inc / 'version_major.h').write_text('#define LIBAVUTIL_VERSION_MAJOR 60\n')
+            with self.assertRaises(RuntimeError):
+                prepare.verify_ffmpeg_major(inc, 'avutil', 61)
+
+    def test_ffmpeg_split_version_header(self):
+        with tempfile.TemporaryDirectory() as temp:
+            inc = Path(temp)
+            (inc / 'version.h').write_text('#include "version_major.h"\n')
+            (inc / 'version_major.h').write_text('#define LIBAVCODEC_VERSION_MAJOR 63\n')
+            prepare.verify_ffmpeg_major(inc, 'avcodec', 63)
+
     def test_dependency_pins(self):
         lock = json.loads((HERE / 'win10-ps5-lock.json').read_text())
         for item in lock['archives'].values():
