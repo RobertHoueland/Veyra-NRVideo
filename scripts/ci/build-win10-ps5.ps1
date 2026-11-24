@@ -91,6 +91,13 @@ switch ($Phase) {
             'veyra_remoteplay_feedback_wire_tests','veyra_remoteplay_boundary_tests')
     }
     'test' {
+        # The product-boundary executable links the real media/source libraries.
+        # Their import LIBs were generated from this verified portable donor;
+        # use its matching DLLs, not unrelated copies on the runner's PATH.
+        $Donor = (Get-Content "$Work/donor-path.txt" -Raw).Trim()
+        if (-not (Test-Path "$Donor/avcodec-63.dll")) { throw 'Verified runtime donor is missing' }
+        $env:PATH = "$Donor;$env:QT_ROOT_DIR/bin;$env:PATH"
+        Exec dumpbin @('/nologo','/dependents',"$Build/veyra_remoteplay_boundary_tests.exe")
         Exec cmake @('--build',"$Work/native-build",'--parallel','2','--target','veyra_remoteplay_core_tests')
         Exec ctest @('--test-dir',"$Work/native-build",'--output-on-failure','-L','offline-core|native-core','--timeout','60')
         Exec ctest @('--test-dir',$Build,'--output-on-failure','-R','^remoteplay-feedback-wire$','--timeout','60')
