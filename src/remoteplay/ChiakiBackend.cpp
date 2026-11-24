@@ -76,7 +76,12 @@ struct ChiakiBackend::Impl {
         auto& self=*static_cast<Impl*>(user);
         if(message&&level==CHIAKI_LOG_VERBOSE){
             int target=-1;
-            if(std::sscanf(message,"StreamConnection received connection quality: target_bitrate=%d,",&target)==1&&target>=0){self.serverTargetBitrate=target;++self.qualityReports;}
+#if defined(_MSC_VER)
+            const int fields=sscanf_s(message,"StreamConnection received connection quality: target_bitrate=%d,",&target);
+#else
+            const int fields=std::sscanf(message,"StreamConnection received connection quality: target_bitrate=%d,",&target);
+#endif
+            if(fields==1&&target>=0){self.serverTargetBitrate=target;++self.qualityReports;}
         }
         // Raw upstream log strings/hexdumps may contain keys. Do not forward them.
         if(level==CHIAKI_LOG_ERROR)++self.errors;
@@ -187,7 +192,15 @@ BackendResult ChiakiBackend::start(const NativeConnectRequest& request,SessionIn
     s.discardMedia=discardMedia;
     // Verbose formatting has per-packet overhead: enable only for explicit diagnostics.
     // Callback above whitelists numeric quality fields and never forwards raw text.
+#if defined(_MSC_VER)
+    char* qualityTraceValue=nullptr;
+    std::size_t qualityTraceSize=0;
+    const auto qualityTraceError=_dupenv_s(&qualityTraceValue,&qualityTraceSize,"VEYRA_TEST_PS5_QUALITY_TRACE");
+    const bool qualityTrace=qualityTraceError==0&&qualityTraceValue!=nullptr;
+    std::free(qualityTraceValue);
+#else
     const bool qualityTrace=std::getenv("VEYRA_TEST_PS5_QUALITY_TRACE")!=nullptr;
+#endif
     chiaki_log_init(&s.log,CHIAKI_LOG_WARNING|CHIAKI_LOG_ERROR|(qualityTrace?CHIAKI_LOG_VERBOSE:0),Impl::logCallback,&s);
     ChiakiConnectInfo info{};info.ps5=true;info.host=s.host.c_str();
     std::memcpy(info.regist_key,request.credentials.registrationKey.data(),request.credentials.registrationKey.size());
