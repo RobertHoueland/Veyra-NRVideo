@@ -30,7 +30,18 @@ switch ($Phase) {
         }
         Exec git @('-C',$VcRoot,'fetch','--depth','1','origin',$Lock.vcpkg_commit)
         Exec git @('-C',$VcRoot,'checkout','--detach',$Lock.vcpkg_commit)
-        Exec "$VcRoot/bootstrap-vcpkg.bat" @('-disableMetrics')
+        # Bootstrap occasionally times out fetching its pinned vcpkg.exe from
+        # GitHub. Retry this network setup only, never compiler/test failures.
+        for ($Attempt = 1; $Attempt -le 3; $Attempt++) {
+            try {
+                Exec "$VcRoot/bootstrap-vcpkg.bat" @('-disableMetrics')
+                break
+            } catch {
+                if ($Attempt -eq 3) { throw }
+                Write-Warning "vcpkg bootstrap attempt $Attempt failed; retrying"
+                Start-Sleep -Seconds (5 * $Attempt)
+            }
+        }
         # Classic mode, never the application's intentionally minimal manifest.
         Exec "$VcRoot/vcpkg.exe" @('install','--classic','--triplet=x64-windows-static',
             'opus','openssl','json-c','libevent','miniupnpc','pkgconf','nlohmann-json')
