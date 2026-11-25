@@ -74,7 +74,7 @@ switch ($Phase) {
     }
     'configure' {
         $Args = @('-S',$Root,'-B',$Build,'-G','Ninja','-DCMAKE_BUILD_TYPE=Release',
-            '-DVEYRA_BUILD_QML_UI=ON','-DVEYRA_DISPLAY_VERSION=2.2.0-win10-fsr4-ps5-test',
+            '-DVEYRA_BUILD_QML_UI=ON','-DVEYRA_DISPLAY_VERSION=2.2.1-win10-fsr4-ps5-test',
             '-DVEYRA_ENABLE_D3D12_DEBUG=OFF','-DVEYRA_ENABLE_EXPERIMENTAL_DLSSNR=ON',
             '-DVEYRA_ENABLE_REMOTEPLAY=ON','-DVEYRA_ENABLE_MOONLIGHT=ON','-DVEYRA_ENABLE_XBOX=ON',
             '-DVEYRA_ENABLE_DEINTERLACE=ON','-DVEYRA_ENABLE_LIBDOVI=ON','-DVEYRA_UPDATE_PUBLIC_KEY=',

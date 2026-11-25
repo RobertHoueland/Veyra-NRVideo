@@ -141,9 +141,9 @@ def verify_ffmpeg_major(include_dir, library, expected):
 
 
 def stage_runtime_headers(work):
-    donors = list((work / 'donor').rglob('versions/2.2.0/veyra_qml_ui.exe'))
+    donors = list((work / 'donor').rglob('versions/2.2.1/veyra_qml_ui.exe'))
     if len(donors) != 1:
-        raise RuntimeError(f'Expected one 2.2.0 donor application, found {len(donors)}')
+        raise RuntimeError(f'Expected one 2.2.1 donor application, found {len(donors)}')
     donor = donors[0].parent
     prefix = work / 'ffmpeg-prefix'
     source = work / 'ffmpeg/ffmpeg-patched'

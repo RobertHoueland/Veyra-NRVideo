@@ -1,5 +1,5 @@
 {
-  "base_release": "671f9e963db63cbd7f912caa35c4caa3e0e60f76",
+  "base_release": "b9cc86aa9f68462ea740afe6104db4d5ce227aeb",
   "win10_patch_source": "https://github.com/MIASock/Veyra-NRVideo-win10-fsr4ml/tree/1d09ef299c3ff708d41d06197ff0c956b4bb2b04",
   "vcpkg_commit": "7f2ca8f8f9a2b6ae02ea4b4b7e0ef27490568afa",
   "agility_version": "1.620.2",
@@ -17,16 +17,16 @@
       "sha256": "633d3e555fc97f0a1f55b4adb03256cd94b8059e51e7abbae98ff39e58a9dfa5"
     },
     "donor": {
-      "url": "https://github.com/Likely7/Veyra-NRVideo/releases/download/v2.2.0/Veyra-2.2.0-AMD-win64-portable.zip",
-      "sha256": "b383cd4fbc94a6b84e32f36bc8c2758b4c03216c2bd0a2560e3112ba520d6905"
+      "url": "https://github.com/Likely7/Veyra-NRVideo/releases/download/v2.2.1/Veyra-2.2.1-AMD-win64-portable.zip",
+      "sha256": "b6440744dee2ae9422838f486873c84ed8d6b1bc36b6ad29222e8eda40077bf8"
     },
     "ffmpeg": {
-      "url": "https://github.com/Likely7/Veyra-NRVideo/releases/download/v2.0.7-sources/FFmpeg-9.0.1-slices256-dav1d-zlib-source.zip",
-      "sha256": "49db22049f072bd5448faa664aa736074dccfe6e72b4a933f673d8ae954b0bb6"
+      "url": "https://github.com/Likely7/Veyra-NRVideo/releases/download/v2.2.1-sources/FFmpeg-9.0.1-PS5-reference-pool-source.zip",
+      "sha256": "36ab8f0806c1d3487149356b5d8e6016940909de639b4d7337391d01b8617a02"
     },
     "remoteplay_dovi": {
-      "url": "https://github.com/Likely7/Veyra-NRVideo/releases/download/v2.2.0-sources/Veyra-2.2.0-remoteplay-dovi-source.zip",
-      "sha256": "9aa56baa2aeb1f863934aaaeeebd0631bb0d48d209ffa60e7ca3801b0fba1de2"
+      "url": "https://github.com/Likely7/Veyra-NRVideo/releases/download/v2.2.1-sources/Veyra-2.2.1-remoteplay-dovi-source.zip",
+      "sha256": "badadf44952d13b316a03d7ca20e2a8d200a4449346bf06b0e11802a48ca80d4"
     }
   }
 }

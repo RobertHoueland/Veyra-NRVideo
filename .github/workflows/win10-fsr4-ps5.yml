@@ -1,8 +1,8 @@
-name: Veyra 2.2.0 - Windows 10 FSR4 and PS5
+name: Veyra 2.2.1 - Windows 10 FSR4 and PS5
 
 on:
   push:
-    branches: [win10-fsr4-ps5-2.2.0]
+    branches: [win10-fsr4-ps5-2.2.1]
   workflow_dispatch:
 
 permissions:
@@ -112,7 +112,7 @@ jobs:
         run: ./scripts/ci/build-win10-ps5.ps1 -Phase package
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: veyra-2.2.0-win10-fsr4-ps5-${{ github.sha }}
+          name: veyra-2.2.1-win10-fsr4-ps5-${{ github.sha }}
           path: dist/
           if-no-files-found: error
           retention-days: 14
