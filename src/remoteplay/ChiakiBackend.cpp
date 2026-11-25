@@ -92,7 +92,11 @@ struct ChiakiBackend::Impl {
         if(level==CHIAKI_LOG_ERROR){
             ++self.errors;
             unsigned reason=0;
+#if defined(_MSC_VER)
+            if(message&&sscanf_s(message,"Reported Application Reason: %x",&reason)==1)
+#else
             if(message&&std::sscanf(message,"Reported Application Reason: %x",&reason)==1)
+#endif
                 self.applicationReason=reason;
         }
         if(level==CHIAKI_LOG_WARNING)++self.warnings;
@@ -303,8 +307,17 @@ BackendResult ChiakiBackend::submitController(const ControllerState& state){
     c.l2_state=state.l2;c.r2_state=state.r2;c.left_x=state.leftX;c.left_y=state.leftY;c.right_x=state.rightX;c.right_y=state.rightY;
     const auto sent=p_->record(chiaki_session_set_controller_state(&p_->session,&c),"chiaki_session_set_controller_state");
     static const bool traceInput=[]{
+#if defined(_MSC_VER)
+        char* value=nullptr;
+        size_t size=0;
+        const auto error=_dupenv_s(&value,&size,"VEYRA_TEST_RP_INPUT_LOG");
+        const bool enabled=error==0&&value&&std::string_view(value)=="1";
+        std::free(value);
+        return enabled;
+#else
         const auto* value=std::getenv("VEYRA_TEST_RP_INPUT_LOG");
         return value&&std::string_view(value)=="1";
+#endif
     }();
     if(traceInput&&sent.ok){
         const bool clicked=(c.buttons&CHIAKI_CONTROLLER_BUTTON_TOUCHPAD)!=0;
